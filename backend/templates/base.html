@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Job Tracker</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://unpkg.com/htmx.org@1.9.12/dist/htmx.min.js"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12/dist/ext/json-enc.js"></script>
+</head>
+<body hx-ext="json-enc">
+  <nav class="top-nav">
+    <a href="/" class="nav-logo">Job Tracker</a>
+    <div class="nav-links">
+      <a href="/" class="nav-link">Jobs</a>
+      <!-- WORK IN PROGRESS — profile and answers links removed until autofill is complete
+      <a href="/profile" class="nav-link">Profile</a>
+      <a href="/answers" class="nav-link">Answers</a>
+      -->
+    </div>
+  </nav>
+  {% block content %}{% endblock %}
+</body>
+</html>

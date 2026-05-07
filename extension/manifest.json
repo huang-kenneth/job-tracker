@@ -1,0 +1,56 @@
+{
+  "manifest_version": 3,
+  "name": "Job Tracker",
+  "version": "1.0",
+  "description": "Auto-save and autofill job postings to your local Job Tracker dashboard.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "https://boards.greenhouse.io/*",
+    "https://job-boards.greenhouse.io/*",
+    "https://*.greenhouse.io/*",
+    "https://jobs.lever.co/*",
+    "https://jobs.ashbyhq.com/*",
+    "https://apply.workable.com/*",
+    "https://jobs.workable.com/*",
+    "https://*.myworkdayjobs.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service_worker.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://boards.greenhouse.io/*",
+        "https://job-boards.greenhouse.io/*",
+        "https://*.greenhouse.io/*",
+        "https://jobs.lever.co/*",
+        "https://jobs.ashbyhq.com/*",
+        "https://apply.workable.com/*",
+        "https://jobs.workable.com/*",
+        "https://*.myworkdayjobs.com/*"
+      ],
+      "js": [
+        "content/scrapers.js",
+        "content/toast.js",
+        "content/floating_button.js",
+        "content/content.js"
+      ],
+      "_wip_autofill_scripts": "WORK IN PROGRESS — autofill content scripts removed until feature is complete",
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  }
+}

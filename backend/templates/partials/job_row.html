@@ -1,0 +1,48 @@
+<tr id="job-{{ job.id }}">
+  <td>
+    <a href="{{ job.url }}" target="_blank" rel="noopener" class="company-link">{{ job.company }}</a>
+  </td>
+  <td>{{ job.role }}</td>
+  <td>{{ job.location or '—' }}</td>
+  <td>
+    <select
+      class="status-select status-{{ job.status }}"
+      hx-patch="/api/jobs/{{ job.id }}"
+      hx-vals='js:{"status": event.target.value}'
+      hx-target="#job-{{ job.id }}"
+      hx-swap="outerHTML"
+      hx-trigger="change"
+    >
+      {% for s in statuses %}
+      <option value="{{ s }}" {% if job.status == s %}selected{% endif %}>{{ s.replace('_', ' ').title() }}</option>
+      {% endfor %}
+    </select>
+  </td>
+  <td><span class="source-badge">{{ job.source }}</span></td>
+  <td class="date-cell">{{ job.created_at.strftime('%b %d, %Y') if job.created_at else '—' }}</td>
+  <td class="notes-cell">
+    <span
+      class="notes-display"
+      onclick="this.style.display='none'; this.nextElementSibling.style.display='block'; this.nextElementSibling.focus();"
+    >{{ job.notes or '+ add note' }}</span>
+    <textarea
+      class="notes-edit"
+      style="display:none"
+      hx-patch="/api/jobs/{{ job.id }}"
+      hx-vals='js:{"notes": event.target.value}'
+      hx-target="#job-{{ job.id }}"
+      hx-swap="outerHTML"
+      hx-trigger="blur"
+      rows="2"
+    >{{ job.notes or '' }}</textarea>
+  </td>
+  <td>
+    <button
+      class="delete-btn"
+      hx-delete="/api/jobs/{{ job.id }}"
+      hx-target="#job-{{ job.id }}"
+      hx-swap="delete"
+      hx-confirm="Delete this job?"
+    >✕</button>
+  </td>
+</tr>

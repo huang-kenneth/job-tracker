@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Job Tracker</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup">
+    <header>
+      <h1>Job Tracker</h1>
+      <span class="status-dot" id="statusDot" title="Backend unreachable"></span>
+    </header>
+
+    <div class="settings">
+      <div class="toggle-row">
+        <span class="label">Extension enabled</span>
+        <label class="toggle">
+          <input type="checkbox" id="enabledToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="toggle-row">
+        <span class="label" id="autoSaveLabel">Auto-save</span>
+        <label class="toggle">
+          <input type="checkbox" id="autoSaveToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="input-row">
+        <label for="backendUrl">Backend URL</label>
+        <input type="text" id="backendUrl" placeholder="http://localhost:8000">
+      </div>
+    </div>
+
+    <!-- WORK IN PROGRESS — autofill section disabled until feature is complete
+    <div class="section-divider">Autofill</div>
+
+    <div class="settings">
+      <div class="toggle-row">
+        <span class="label">Autofill enabled</span>
+        <label class="toggle">
+          <input type="checkbox" id="autofillToggle">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="domain-row" id="domainRow" style="display:none">
+        <span class="label" id="domainLabel">This site</span>
+        <button class="btn-domain" id="domainToggle">—</button>
+      </div>
+
+      <button class="btn-autofill-now" id="autofillNowBtn" style="display:none">Autofill now</button>
+
+      <div class="link-row">
+        <a href="#" id="profileLink">Edit profile ↗</a>
+        <a href="#" id="answersLink">Edit answers ↗</a>
+      </div>
+    </div>
+    END WORK IN PROGRESS -->
+
+    <footer>
+      <a href="#" id="dashboardLink">Open dashboard ↗</a>
+      <span class="session-count" id="sessionCount"></span>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

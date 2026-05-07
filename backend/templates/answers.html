@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <header>
+    <h1>Answers</h1>
+    <p class="page-subtitle">Templates are matched against form questions and filled automatically. History records past answers.</p>
+  </header>
+
+  <!-- ── Templates ─────────────────────────────────────────── -->
+  <section class="answers-section">
+    <div class="section-header">
+      <h2>Templates</h2>
+      <button class="btn-secondary" id="add-template-btn">+ Add template</button>
+    </div>
+    <p class="section-note">
+      Use <code>{{company}}</code> and <code>{{role}}</code> in your answer to insert the current job's details at fill time.
+    </p>
+
+    <form id="add-template-form" class="inline-form hidden">
+      <input type="text" name="label" placeholder="Label (e.g. Why this company)" required>
+      <input type="text" name="question_pattern" placeholder="Question pattern to match" required>
+      <textarea name="answer_template" rows="3" placeholder="Your answer…" required></textarea>
+      <div class="inline-form-actions">
+        <button type="submit" class="btn-primary btn-sm">Save</button>
+        <button type="button" class="btn-ghost btn-sm" id="cancel-add-btn">Cancel</button>
+      </div>
+    </form>
+
+    <table id="templates-table" class="answers-table">
+      <thead>
+        <tr>
+          <th>Label</th>
+          <th>Question pattern</th>
+          <th>Answer template</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="templates-body">
+        <tr id="templates-empty"><td colspan="4" class="empty-state">No templates yet.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ── History ────────────────────────────────────────────── -->
+  <section class="answers-section">
+    <div class="section-header">
+      <h2>History</h2>
+      <input type="search" id="history-search" class="search-input" placeholder="Search questions…">
+    </div>
+    <table class="answers-table">
+      <thead>
+        <tr><th>Question</th><th>Answer</th><th>Company</th><th>Date</th><th></th></tr>
+      </thead>
+      <tbody id="history-body">
+        <tr><td colspan="5" class="empty-state">Loading…</td></tr>
+      </tbody>
+    </table>
+  </section>
+</div>
+
+<script>
+(function () {
+  // ── template helpers ─────────────────────────────────
+  function escHtml(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function templateRow(t) {
+    return `<tr id="tmpl-${t.id}">
+      <td>${escHtml(t.label)}</td>
+      <td class="pattern-cell">${escHtml(t.question_pattern)}</td>
+      <td class="answer-cell"><pre class="answer-pre">${escHtml(t.answer_template)}</pre></td>
+      <td class="row-actions">
+        <button class="btn-ghost btn-sm" onclick="editTemplate(${t.id})">Edit</button>
+        <button class="delete-btn" onclick="deleteTemplate(${t.id})">✕</button>
+      </td>
+    </tr>`;
+  }
+
+  function templateEditRow(t) {
+    return `<tr id="tmpl-${t.id}" class="edit-row">
+      <td colspan="4">
+        <form class="inline-form" onsubmit="saveTemplate(event, ${t.id})">
+          <input type="text" name="label" value="${escHtml(t.label)}" required>
+          <input type="text" name="question_pattern" value="${escHtml(t.question_pattern)}" required>
+          <textarea name="answer_template" rows="3" required>${escHtml(t.answer_template)}</textarea>
+          <div class="inline-form-actions">
+            <button type="submit" class="btn-primary btn-sm">Save</button>
+            <button type="button" class="btn-ghost btn-sm" onclick="cancelEdit(${t.id})">Cancel</button>
+          </div>
+        </form>
+      </td>
+    </tr>`;
+  }
+
+  async function loadTemplates() {
+    const res = await fetch('/api/qa_templates');
+    const list = await res.json();
+    const body = document.getElementById('templates-body');
+    if (list.length === 0) {
+      body.innerHTML = '<tr id="templates-empty"><td colspan="4" class="empty-state">No templates yet.</td></tr>';
+    } else {
+      body.innerHTML = list.map(templateRow).join('');
+    }
+  }
+
+  // ── add template ─────────────────────────────────────
+  document.getElementById('add-template-btn').addEventListener('click', () => {
+    document.getElementById('add-template-form').classList.remove('hidden');
+    document.getElementById('add-template-btn').classList.add('hidden');
+  });
+
+  document.getElementById('cancel-add-btn').addEventListener('click', () => {
+    document.getElementById('add-template-form').reset();
+    document.getElementById('add-template-form').classList.add('hidden');
+    document.getElementById('add-template-btn').classList.remove('hidden');
+  });
+
+  document.getElementById('add-template-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    const res = await fetch('/api/qa_templates', {
+      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      e.target.reset();
+      document.getElementById('add-template-form').classList.add('hidden');
+      document.getElementById('add-template-btn').classList.remove('hidden');
+      loadTemplates();
+    }
+  });
+
+  // ── edit / save / cancel ─────────────────────────────
+  window._templateCache = {};
+
+  window.editTemplate = async (id) => {
+    let t = window._templateCache[id];
+    if (!t) {
+      const res = await fetch(`/api/qa_templates`);
+      const list = await res.json();
+      list.forEach(x => { window._templateCache[x.id] = x; });
+      t = window._templateCache[id];
+    }
+    if (!t) return;
+    const row = document.getElementById(`tmpl-${id}`);
+    if (row) row.outerHTML = templateEditRow(t);
+  };
+
+  window.saveTemplate = async (e, id) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const body = Object.fromEntries(fd.entries());
+    const res = await fetch(`/api/qa_templates/${id}`, {
+      method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body),
+    });
+    if (res.ok) {
+      const updated = await res.json();
+      window._templateCache[id] = updated;
+      const row = document.getElementById(`tmpl-${id}`);
+      if (row) row.outerHTML = templateRow(updated);
+    }
+  };
+
+  window.cancelEdit = async (id) => {
+    const t = window._templateCache[id];
+    if (!t) return;
+    const row = document.getElementById(`tmpl-${id}`);
+    if (row) row.outerHTML = templateRow(t);
+  };
+
+  window.deleteTemplate = async (id) => {
+    if (!confirm('Delete this template?')) return;
+    const res = await fetch(`/api/qa_templates/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      delete window._templateCache[id];
+      loadTemplates();
+    }
+  };
+
+  // ── history ───────────────────────────────────────────
+  function historyRow(h) {
+    const d = new Date(h.created_at).toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+    return `<tr id="hist-${h.id}">
+      <td class="pattern-cell">${escHtml(h.question_text)}</td>
+      <td class="answer-cell"><pre class="answer-pre">${escHtml(h.answer_text)}</pre></td>
+      <td>${escHtml(h.company ?? '—')}</td>
+      <td class="date-cell">${d}</td>
+      <td><button class="delete-btn" onclick="deleteHistory(${h.id})">✕</button></td>
+    </tr>`;
+  }
+
+  async function loadHistory(q) {
+    const url = q ? `/api/qa_history?q=${encodeURIComponent(q)}` : '/api/qa_history';
+    const res = await fetch(url);
+    const list = await res.json();
+    const body = document.getElementById('history-body');
+    body.innerHTML = list.length
+      ? list.map(historyRow).join('')
+      : '<tr><td colspan="5" class="empty-state">No history yet.</td></tr>';
+  }
+
+  window.deleteHistory = async (id) => {
+    if (!confirm('Delete this history entry?')) return;
+    const res = await fetch(`/api/qa_history/${id}`, { method: 'DELETE' });
+    if (res.ok) document.getElementById(`hist-${id}`)?.remove();
+  };
+
+  let searchTimer;
+  document.getElementById('history-search').addEventListener('input', (e) => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => loadHistory(e.target.value.trim()), 250);
+  });
+
+  // Initial load
+  loadTemplates();
+  loadHistory();
+})();
+</script>
+{% endblock %}

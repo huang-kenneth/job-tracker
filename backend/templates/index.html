@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <header>
+    <h1>Job Tracker</h1>
+    <div class="stats">
+      <span class="stat-total">{{ total }} total</span>
+      {% for s in statuses %}
+        {% if counts[s] > 0 %}
+        <span class="stat-badge stat-{{ s }}">{{ s.replace('_', ' ') }}: {{ counts[s] }}</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </header>
+
+  <nav class="filter-bar">
+    <a href="/?filter=all" class="filter-btn {% if active_filter == 'all' %}active{% endif %}">All</a>
+    {% for s in statuses %}
+    <a href="/?filter={{ s }}" class="filter-btn {% if active_filter == s %}active{% endif %}">{{ s.replace('_', ' ').title() }}</a>
+    {% endfor %}
+  </nav>
+
+  <table id="jobs-table">
+    <thead>
+      <tr>
+        <th>Company</th>
+        <th>Role</th>
+        <th>Location</th>
+        <th>Status</th>
+        <th>Source</th>
+        <th>Date Added</th>
+        <th>Notes</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="jobs-body">
+      {% for job in jobs %}
+        {% include "partials/job_row.html" %}
+      {% endfor %}
+      {% if not jobs %}
+      <tr id="empty-row">
+        <td colspan="8" class="empty-state">No jobs yet. Use the bookmarklet to add some!</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

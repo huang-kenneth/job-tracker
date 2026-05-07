@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="container">
+  <header>
+    <h1>Profile</h1>
+    <p class="page-subtitle">Saved values are used by the extension to autofill application forms.</p>
+  </header>
+
+  <form id="profile-form" class="profile-form" novalidate>
+
+    <section class="form-section">
+      <h2>Personal</h2>
+      <div class="field-grid">
+        <label class="field-label">First Name<input type="text" name="first_name" autocomplete="given-name"></label>
+        <label class="field-label">Last Name<input type="text" name="last_name" autocomplete="family-name"></label>
+        <label class="field-label">Preferred Name<input type="text" name="preferred_name"></label>
+        <label class="field-label">Pronouns<input type="text" name="pronouns" placeholder="e.g. they/them"></label>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2>Contact</h2>
+      <div class="field-grid">
+        <label class="field-label">Email<input type="email" name="email" autocomplete="email"></label>
+        <label class="field-label">Phone<input type="tel" name="phone" autocomplete="tel"></label>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2>Links</h2>
+      <div class="field-grid">
+        <label class="field-label">LinkedIn URL<input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/..."></label>
+        <label class="field-label">GitHub URL<input type="url" name="github_url" placeholder="https://github.com/..."></label>
+        <label class="field-label field-wide">Portfolio / Website<input type="url" name="portfolio_url" placeholder="https://..."></label>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2>Address</h2>
+      <div class="field-grid">
+        <label class="field-label field-wide">Street Address<input type="text" name="address_line1" autocomplete="street-address"></label>
+        <label class="field-label">City<input type="text" name="city" autocomplete="address-level2"></label>
+        <label class="field-label">State / Province<input type="text" name="state" autocomplete="address-level1"></label>
+        <label class="field-label">ZIP / Postal Code<input type="text" name="postal_code" autocomplete="postal-code"></label>
+        <label class="field-label">Country<input type="text" name="country" autocomplete="country-name"></label>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2>Work Authorization</h2>
+      <div class="field-grid">
+        <label class="field-label field-wide">
+          Status
+          <input type="text" name="work_auth_status" placeholder="e.g. US Citizen, Requires Sponsorship">
+        </label>
+        <label class="field-label field-checkbox">
+          <input type="checkbox" name="requires_sponsorship">
+          Requires visa sponsorship
+        </label>
+      </div>
+    </section>
+
+    <section class="form-section">
+      <h2>EEO / Demographics</h2>
+      <p class="section-note">These are stored locally and only sent to forms when you explicitly click "Fill from profile." Leave blank to skip.</p>
+      <div class="field-grid">
+        <label class="field-label">Gender<input type="text" name="gender"></label>
+        <label class="field-label">Race / Ethnicity<input type="text" name="race_ethnicity"></label>
+        <label class="field-label">Veteran Status<input type="text" name="veteran_status" placeholder="e.g. Not a veteran"></label>
+        <label class="field-label">Disability Status<input type="text" name="disability_status" placeholder="e.g. No disability"></label>
+      </div>
+    </section>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary">Save Profile</button>
+      <span id="save-msg" class="save-msg"></span>
+    </div>
+  </form>
+</div>
+
+<script>
+(async function () {
+  const form = document.getElementById('profile-form');
+  const msg  = document.getElementById('save-msg');
+
+  // Load current profile
+  try {
+    const res  = await fetch('/api/profile');
+    const data = await res.json();
+    for (const [key, val] of Object.entries(data)) {
+      const el = form.elements[key];
+      if (!el) continue;
+      if (el.type === 'checkbox') el.checked = !!val;
+      else if (val !== null && val !== undefined) el.value = val;
+    }
+  } catch (e) {
+    console.error('Failed to load profile', e);
+  }
+
+  // Save
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const body = {};
+    for (const el of form.elements) {
+      if (!el.name || el.name === '') continue;
+      if (el.type === 'checkbox') body[el.name] = el.checked;
+      else body[el.name] = el.value.trim() || null;
+    }
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      msg.textContent = 'Saved ✓';
+      msg.className = 'save-msg success';
+    } catch (err) {
+      msg.textContent = 'Error: ' + err.message;
+      msg.className = 'save-msg error';
+    }
+    setTimeout(() => { msg.textContent = ''; msg.className = 'save-msg'; }, 3000);
+  });
+})();
+</script>
+{% endblock %}
