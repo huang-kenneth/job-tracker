@@ -5,6 +5,14 @@ A local-first job application tracker. Runs entirely on your machine.
 - **Backend** — FastAPI + SQLite dashboard at `localhost:8000`
 - **Extension** — Manifest V3 Chrome extension that auto-saves job postings as you browse
 
+Extension:
+
+![Extension Sample Picture](/docs/imgs/sample1.png)
+
+Dashboard:
+
+![Dashboard](/docs/imgs/sample2.png)
+
 ---
 
 ## Setup
@@ -98,43 +106,3 @@ python bookmarklet/build.py
 **Use it:** Click the bookmark on any supported job posting.
 
 ---
-
-## Adding Support for a New ATS
-
-1. Add the hostname to `manifest.json` under `host_permissions` and `content_scripts.matches`
-2. Add a scraper to `content/scrapers.js` inside `jtScrape()`
-3. Add a URL detection rule to `content/content.js` inside `isPostingPage()`
-4. Reload the extension at `chrome://extensions`
-
----
-
-
-## Project Structure
-
-```
-job-tracker/
-├── backend/
-│   ├── main.py          # FastAPI app and routes
-│   ├── models.py        # SQLAlchemy models
-│   ├── database.py      # DB engine and session
-│   ├── templates/       # Jinja2 HTML templates
-│   └── static/          # CSS
-├── extension/
-│   ├── manifest.json
-│   ├── background/
-│   │   └── service_worker.js
-│   ├── content/
-│   │   ├── scrapers.js       # Per-ATS data extraction
-│   │   ├── content.js        # Auto-save logic
-│   │   ├── floating_button.js
-│   │   ├── toast.js
-│   │   └── autofill/         # WIP — form autofill
-│   ├── popup/
-│   │   ├── popup.html
-│   │   ├── popup.js
-│   │   └── popup.css
-│   └── icons/
-├── bookmarklet/         # Legacy bookmarklet
-├── requirements.txt
-└── README.md
-```
