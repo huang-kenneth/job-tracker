@@ -2,11 +2,12 @@
 
 Manifest V3 Chrome extension that auto-saves job postings to your local Job Tracker backend.
 
-Extension Sample Picture:
-![Extension Sample Picture]("/docs/imgs/sample1.png")
+Extension:
 
-Dashboard Sample Picture:
-![Dashboard]("/docs/imgs/sample2.png")
+![Extension Sample Picture](/docs/imgs/sample1.png)
+
+Dashboard:
+![Dashboard](/docs/imgs/sample2.png)
 
 ## Setup
 
